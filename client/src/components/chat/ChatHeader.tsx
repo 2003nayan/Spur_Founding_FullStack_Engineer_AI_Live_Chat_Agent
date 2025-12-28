@@ -1,4 +1,5 @@
 import { Sparkles, Plus } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 interface ChatHeaderProps {
   hasMessages: boolean;
@@ -17,7 +18,7 @@ export function ChatHeader({ hasMessages, onNewChat }: ChatHeaderProps) {
             </div>
             <div>
               <h1 className="text-sm font-semibold text-foreground tracking-tight">
-                Spur Store
+                Urban Kicks
               </h1>
               <div className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-success" />
@@ -26,16 +27,20 @@ export function ChatHeader({ hasMessages, onNewChat }: ChatHeaderProps) {
             </div>
           </div>
 
-          {/* New Chat Button */}
-          {hasMessages && (
-            <button
-              onClick={onNewChat}
-              className="btn-secondary gap-1.5 px-3 py-2 text-xs"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              New conversation
-            </button>
-          )}
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            
+            {hasMessages && (
+              <button
+                onClick={onNewChat}
+                className="btn-secondary gap-1.5 px-3 py-2 text-xs"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                New conversation
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </header>

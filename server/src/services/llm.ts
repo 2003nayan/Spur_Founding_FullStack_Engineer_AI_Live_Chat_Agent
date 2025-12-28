@@ -1,6 +1,10 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
-import pRetry, { AbortError } from 'p-retry';
-import { Message } from '../db';
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold,
+} from "@google/generative-ai";
+import pRetry, { AbortError } from "p-retry";
+import { Message } from "../db";
 
 // ============================================
 // Configuration
@@ -8,18 +12,18 @@ import { Message } from '../db';
 
 // Validate API key on startup
 if (!process.env.GEMINI_API_KEY) {
-  console.error('❌ ERROR: GEMINI_API_KEY environment variable is required!');
-  console.error('   Get your key at: https://aistudio.google.com/app/apikey');
-  console.error('   Then add it to server/.env file');
+  console.error("❌ ERROR: GEMINI_API_KEY environment variable is required!");
+  console.error("   Get your key at: https://aistudio.google.com/app/apikey");
+  console.error("   Then add it to server/.env file");
   process.exit(1);
 }
 
 // Retry configuration for resilience
 const RETRY_OPTIONS = {
   retries: 3,
-  minTimeout: 1000,  // Start with 1 second
-  maxTimeout: 5000,  // Max 5 seconds between retries
-  factor: 2,         // Exponential backoff factor
+  minTimeout: 1000, // Start with 1 second
+  maxTimeout: 5000, // Max 5 seconds between retries
+  factor: 2, // Exponential backoff factor
   onFailedAttempt: (error: any) => {
     console.warn(
       `LLM API attempt ${error.attemptNumber} failed. ${error.retriesLeft} retries left.`,
@@ -28,39 +32,49 @@ const RETRY_OPTIONS = {
   },
 };
 
-// System prompt for Spur Store support agent
-const SYSTEM_PROMPT = `You are Ria, a helpful and friendly support agent for 'Spur Store', an e-commerce platform.
+// System prompt for Urban Kicks - powered by Spur Automation
+const SYSTEM_PROMPT = `You are the AI Customer Support Agent for "Urban Kicks", a premium sneaker brand on Shopify.
+You are powered by "Spur Automation" - a platform that values speed, clarity, and efficiency.
 
-IMPORTANT LANGUAGE RULE:
-- Detect the language the user is speaking (English, Hindi, Hinglish, or any other language)
+**YOUR IDENTITY:**
+- Your name is Ria
+- You work for Urban Kicks customer support, powered by Spur
+- You are helpful, professional, friendly, and efficient
+- You value quick resolution and clear communication
+
+**LANGUAGE RULES:**
+- Detect the language the user is speaking (English, Hindi, Hinglish, or any other)
 - ALWAYS respond in the SAME language the user uses
 - If they write in Hindi, respond in Hindi
 - If they write in Hinglish (mix of Hindi and English), respond in Hinglish
-- If they write in English, respond in English
 - Be natural and conversational in whatever language they use
 
-YOUR IDENTITY:
-- Your name is Ria (not [Your Name] or any placeholder)
-- You work for Spur Store customer support
-- You are helpful, professional, and friendly
+**STORE POLICIES (Urban Kicks):**
+- Returns: 30-day "No Questions Asked" return policy. Items must be unworn with original packaging.
+- Shipping: 
+  - Free shipping on orders over $50 (₹4,000)
+  - Standard shipping: 3-5 business days ($4.99 / ₹400)
+  - Express shipping: 1-2 business days ($12.99 / ₹1,000)
+  - Global shipping available to 50+ countries
+- Order Tracking: To track your order, customers need their Order ID starting with "UK-"
+- Support Hours: 9 AM - 5 PM EST (7:30 PM - 3:30 AM IST), Monday through Friday
 
-STORE POLICIES (Know these well and can explain in any language):
-- Returns: 30-day return policy on all items in original condition
-- Shipping: Free shipping on orders over $50 (₹4,000)
-- Standard shipping: 3-5 business days ($4.99 / ₹400)
-- Express shipping: 1-2 business days ($12.99 / ₹1,000)
-- Support hours: 9 AM - 5 PM EST (7:30 PM - 3:30 AM IST), Monday through Friday
+**COMMON QUERIES YOU HANDLE:**
+1. "Where is my order?" → Ask for Order ID (starts with UK-)
+2. Return/refund requests → Explain 30-day policy, ask for order details
+3. Shipping questions → Provide shipping options and costs
+4. Product sizing → Direct to size guide or ask for specific product
+5. Payment issues → Offer to connect with payment specialist
 
-COMMON TOPICS YOU CAN HELP WITH:
-1. Return policy and how to initiate returns
-2. Shipping options, costs, and delivery times
-3. Support hours and how to reach us
-4. General information about Spur Store services
-5. Order status inquiries (ask for order number)
-6. Product information (connect to specialist if needed)
+**IMPORTANT GUIDELINES:**
+- Do NOT hallucinate order statuses. If asked "Where is my order?", always ask for the Order ID first.
+- If you don't know an answer, ask the user to email "support@urbankicks.com"
+- Keep responses concise but helpful
+- Use emojis occasionally to be friendly 😊
+- For complex issues, offer to connect with a human specialist
 
-If you don't know something specific about an order or product, offer to connect them with a specialist.
-Be concise but helpful. Use emojis occasionally to be friendly 😊`;
+**ABOUT SPUR (If asked):**
+Spur is the automation platform powering this chat. It helps D2C brands like Urban Kicks manage customer conversations across WhatsApp, Instagram, and Web chat from a unified inbox.`;
 
 // Initialize Gemini client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -70,7 +84,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // ============================================
 
 export interface ChatMessage {
-  role: 'user' | 'model';
+  role: "user" | "model";
   parts: { text: string }[];
 }
 
@@ -80,9 +94,9 @@ export interface ChatMessage {
 
 // Convert database messages to Gemini format
 function convertToGeminiHistory(messages: Message[]): ChatMessage[] {
-  return messages.map(msg => ({
-    role: msg.sender === 'user' ? 'user' : 'model',
-    parts: [{ text: msg.content }]
+  return messages.map((msg) => ({
+    role: msg.sender === "user" ? "user" : "model",
+    parts: [{ text: msg.content }],
   }));
 }
 
@@ -92,11 +106,11 @@ function isRetryableError(error: any): boolean {
   if (error?.status === 429) return true; // Rate limited
   if (error?.status === 503) return true; // Service unavailable
   if (error?.status === 500) return true; // Server error
-  if (error?.code === 'ETIMEDOUT') return true;
-  if (error?.code === 'ECONNRESET') return true;
-  if (error?.code === 'ECONNREFUSED') return true;
-  if (error?.message?.includes('quota')) return true;
-  if (error?.message?.includes('rate')) return true;
+  if (error?.code === "ETIMEDOUT") return true;
+  if (error?.code === "ECONNRESET") return true;
+  if (error?.code === "ECONNREFUSED") return true;
+  if (error?.message?.includes("quota")) return true;
+  if (error?.message?.includes("rate")) return true;
   return false;
 }
 
@@ -104,9 +118,12 @@ function isRetryableError(error: any): boolean {
 // Core LLM Function with Retry Logic
 // ============================================
 
-async function callGeminiAPI(userMessage: string, history: ChatMessage[]): Promise<string> {
-  const model = genAI.getGenerativeModel({ 
-    model: 'gemini-2.5-flash',
+async function callGeminiAPI(
+  userMessage: string,
+  history: ChatMessage[]
+): Promise<string> {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
     systemInstruction: SYSTEM_PROMPT,
     safetySettings: [
       {
@@ -121,7 +138,7 @@ async function callGeminiAPI(userMessage: string, history: ChatMessage[]): Promi
     generationConfig: {
       maxOutputTokens: 500,
       temperature: 0.7,
-    }
+    },
   });
 
   // Start chat with history
@@ -131,9 +148,9 @@ async function callGeminiAPI(userMessage: string, history: ChatMessage[]): Promi
   const result = await chat.sendMessage(userMessage);
   const response = result.response;
   const reply = response.text();
-  
+
   if (!reply) {
-    throw new Error('No response generated from AI');
+    throw new Error("No response generated from AI");
   }
 
   return reply.trim();
@@ -152,45 +169,52 @@ export async function generateResponse(
   conversationHistory: Message[]
 ): Promise<string> {
   const history = convertToGeminiHistory(conversationHistory);
-  
+
   try {
     // Use p-retry for automatic retries with exponential backoff
-    const response = await pRetry(
-      async () => {
-        try {
-          return await callGeminiAPI(userMessage, history);
-        } catch (error: any) {
-          // Don't retry non-retryable errors (abort immediately)
-          if (!isRetryableError(error)) {
-            throw new AbortError(error.message || 'Non-retryable error');
-          }
-          throw error; // Rethrow for retry
+    const response = await pRetry(async () => {
+      try {
+        return await callGeminiAPI(userMessage, history);
+      } catch (error: any) {
+        // Don't retry non-retryable errors (abort immediately)
+        if (!isRetryableError(error)) {
+          throw new AbortError(error.message || "Non-retryable error");
         }
-      },
-      RETRY_OPTIONS
-    );
-    
+        throw error; // Rethrow for retry
+      }
+    }, RETRY_OPTIONS);
+
     return response;
-    
   } catch (error: any) {
-    console.error('Gemini API Error (after retries):', error);
-    
+    console.error("Gemini API Error (after retries):", error);
+
     // Handle specific Gemini errors with user-friendly messages
-    if (error?.message?.includes('API key') || error?.message?.includes('API_KEY')) {
-      throw new Error('AI service configuration error. Please check your API key.');
+    if (
+      error?.message?.includes("API key") ||
+      error?.message?.includes("API_KEY")
+    ) {
+      throw new Error(
+        "AI service configuration error. Please check your API key."
+      );
     }
-    if (error?.status === 404 || error?.message?.includes('not found')) {
-      console.error('Model not found. Your API key may need the Generative Language API enabled.');
-      throw new Error('AI model not available. Please check your API configuration.');
+    if (error?.status === 404 || error?.message?.includes("not found")) {
+      console.error(
+        "Model not found. Your API key may need the Generative Language API enabled."
+      );
+      throw new Error(
+        "AI model not available. Please check your API configuration."
+      );
     }
-    if (error?.message?.includes('quota') || error?.message?.includes('rate')) {
-      throw new Error('Our AI agent is currently busy. Please try again in a few seconds.');
+    if (error?.message?.includes("quota") || error?.message?.includes("rate")) {
+      throw new Error(
+        "Our AI agent is currently busy. Please try again in a few seconds."
+      );
     }
-    if (error?.code === 'ETIMEDOUT' || error?.code === 'ECONNRESET') {
-      throw new Error('AI service timed out. Please try again.');
+    if (error?.code === "ETIMEDOUT" || error?.code === "ECONNRESET") {
+      throw new Error("AI service timed out. Please try again.");
     }
-    
-    throw new Error('Unable to generate response. Please try again later.');
+
+    throw new Error("Unable to generate response. Please try again later.");
   }
 }
 
@@ -198,5 +222,5 @@ export async function generateResponse(
  * Get LLM provider name for health checks
  */
 export function getLLMProvider(): string {
-  return 'Google Gemini';
+  return "Google Gemini";
 }

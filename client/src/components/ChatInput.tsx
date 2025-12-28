@@ -76,10 +76,10 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         {/* Footer info */}
         <div className="mt-2 flex items-center justify-between px-1">
           <span className="text-2xs text-muted-foreground">
-            <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-2xs font-mono">↵</kbd>
+            <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-2xs font-mono">Enter</kbd>
             <span className="ml-1.5">to send</span>
             <span className="mx-1.5 text-border">•</span>
-            <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-2xs font-mono">⇧ ↵</kbd>
+            <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-2xs font-mono">Shift + Enter</kbd>
             <span className="ml-1.5">for new line</span>
           </span>
 

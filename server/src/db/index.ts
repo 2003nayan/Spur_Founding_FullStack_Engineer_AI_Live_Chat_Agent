@@ -1,20 +1,20 @@
-import Database, { Database as DatabaseType } from 'better-sqlite3';
-import path from 'path';
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
+import Database, { Database as DatabaseType } from "better-sqlite3";
+import path from "path";
+import fs from "fs";
+import { v4 as uuidv4 } from "uuid";
 
 // Ensure data directory exists
-const dataDir = path.join(__dirname, '../../data');
+const dataDir = path.join(__dirname, "../../data");
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
 // Initialize SQLite database
-const dbPath = path.join(dataDir, 'chat.db');
+const dbPath = path.join(dataDir, "chat.db");
 const db: DatabaseType = new Database(dbPath);
 
 // Enable WAL mode for better concurrent performance
-db.pragma('journal_mode = WAL');
+db.pragma("journal_mode = WAL");
 
 // Create tables if they don't exist
 db.exec(`
@@ -28,6 +28,7 @@ db.exec(`
     conversation_id TEXT NOT NULL,
     sender TEXT NOT NULL CHECK (sender IN ('user', 'ai')),
     content TEXT NOT NULL,
+    platform TEXT DEFAULT 'web' CHECK (platform IN ('web', 'whatsapp', 'instagram', 'facebook')),
     created_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (conversation_id) REFERENCES conversations(id)
   );
@@ -39,7 +40,7 @@ db.exec(`
 export interface Message {
   id: number;
   conversation_id: string;
-  sender: 'user' | 'ai';
+  sender: "user" | "ai";
   content: string;
   created_at: string;
 }
@@ -52,14 +53,14 @@ export interface Conversation {
 // Create a new conversation and return its ID
 export function createConversation(): string {
   const id = uuidv4();
-  const stmt = db.prepare('INSERT INTO conversations (id) VALUES (?)');
+  const stmt = db.prepare("INSERT INTO conversations (id) VALUES (?)");
   stmt.run(id);
   return id;
 }
 
 // Check if a conversation exists
 export function conversationExists(sessionId: string): boolean {
-  const stmt = db.prepare('SELECT id FROM conversations WHERE id = ?');
+  const stmt = db.prepare("SELECT id FROM conversations WHERE id = ?");
   const result = stmt.get(sessionId);
   return !!result;
 }
@@ -67,7 +68,7 @@ export function conversationExists(sessionId: string): boolean {
 // Save a message to the database
 export function saveMessage(
   conversationId: string,
-  sender: 'user' | 'ai',
+  sender: "user" | "ai",
   content: string
 ): Message {
   const stmt = db.prepare(`
@@ -75,13 +76,13 @@ export function saveMessage(
     VALUES (?, ?, ?)
   `);
   const result = stmt.run(conversationId, sender, content);
-  
+
   return {
     id: result.lastInsertRowid as number,
     conversation_id: conversationId,
     sender,
     content,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
   };
 }
 

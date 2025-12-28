@@ -1,4 +1,5 @@
 import { useChat } from './hooks/useChat';
+import { ThemeProvider } from './hooks/useTheme';
 import { MessageList } from './components/MessageList';
 import { ChatInput } from './components/ChatInput';
 import { ChatHeader } from './components/chat/ChatHeader';
@@ -6,7 +7,7 @@ import { ChatFooter } from './components/chat/ChatFooter';
 import { WelcomeScreen } from './components/chat/WelcomeScreen';
 import { QUICK_ACTIONS } from './constants/quickActions';
 
-function App() {
+function ChatApp() {
   const { messages, isLoading, isHistoryLoading, error, sendUserMessage, clearSession } = useChat();
 
   const hasMessages = messages.length > 0;
@@ -55,6 +56,14 @@ function App() {
         </div>
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <ChatApp />
+    </ThemeProvider>
   );
 }
 

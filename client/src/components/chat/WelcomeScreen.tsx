@@ -27,7 +27,7 @@ export function WelcomeScreen({ quickActions, onQuickAction, isLoading }: Welcom
             How can we help you today?
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
-            I'm Ria, your support assistant. Ask me anything about orders, shipping, returns, or our products.
+            I'm Ria, your Urban Kicks support assistant. Ask me anything about orders, shipping, returns, or our products.
           </p>
         </div>
 

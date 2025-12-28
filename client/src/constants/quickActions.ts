@@ -1,28 +1,28 @@
-import { QuickAction } from '../types/chat';
+import { QuickAction } from "../types/chat";
 
 export const QUICK_ACTIONS: QuickAction[] = [
   {
-    id: 'return',
-    icon: '📦',
-    label: 'Return Policy',
-    message: 'What is your return policy?',
+    id: "track",
+    icon: "📦",
+    label: "Track My Order",
+    message: "Where is my order?",
   },
   {
-    id: 'shipping',
-    icon: '🚚',
-    label: 'Shipping Options',
-    message: 'What are your shipping options and costs?',
+    id: "return",
+    icon: "↩️",
+    label: "Returns & Refunds",
+    message: "What is your return policy?",
   },
   {
-    id: 'hours',
-    icon: '🕐',
-    label: 'Support Hours',
-    message: 'What are your support hours?',
+    id: "shipping",
+    icon: "🚚",
+    label: "Shipping Info",
+    message: "What are your shipping options and costs?",
   },
   {
-    id: 'about',
-    icon: '✨',
-    label: 'About Spur Store',
-    message: 'Tell me about Spur Store services',
+    id: "sizing",
+    icon: "👟",
+    label: "Size Guide",
+    message: "How do I find my sneaker size?",
   },
 ];
