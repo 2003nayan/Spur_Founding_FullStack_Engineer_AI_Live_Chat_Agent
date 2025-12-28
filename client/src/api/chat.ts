@@ -1,4 +1,5 @@
-const API_BASE_URL = '/chat';
+// Use environment variable for production, fallback to proxy for local dev
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/chat';
 
 export interface Message {
   id: number;

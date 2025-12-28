@@ -1,133 +1,98 @@
-import { useState, useCallback, KeyboardEvent, ChangeEvent } from 'react';
+import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { ArrowUp } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 const MAX_LENGTH = 500;
 
 export function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [message, setMessage] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const validate = useCallback((text: string): string | null => {
-    if (text.trim().length === 0) {
-      return 'Please enter a message';
-    }
-    if (text.length > MAX_LENGTH) {
-      return `Message cannot exceed ${MAX_LENGTH} characters`;
-    }
-    return null;
-  }, []);
+  const isOverLimit = message.length > MAX_LENGTH;
+  const isEmpty = message.trim().length === 0;
+  const isValid = !isEmpty && !isOverLimit && !disabled;
 
-  const handleSubmit = useCallback(() => {
-    const trimmedMessage = message.trim();
-    const validationError = validate(trimmedMessage);
-    
-    if (validationError) {
-      setError(validationError);
-      return;
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
     }
+  }, [message]);
 
-    onSend(trimmedMessage);
+  const handleSend = () => {
+    if (!isValid) return;
+    onSend(message.trim());
     setMessage('');
-    setError(null);
-  }, [message, onSend, validate]);
+  };
 
-  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (!disabled) {
-        handleSubmit();
-      }
+      handleSend();
     }
-  }, [disabled, handleSubmit]);
-
-  const handleChange = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setMessage(value);
-    
-    // Clear error when user starts typing
-    if (error) {
-      setError(null);
-    }
-  }, [error]);
-
-  const charCount = message.length;
-  const isOverLimit = charCount > MAX_LENGTH;
+  };
 
   return (
-    <div className="px-4 pb-4 pt-2">
-      <div className="glass rounded-2xl p-3 shadow-lg">
-        {error && (
-          <div className="mb-2 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        )}
-        
-        <div className="flex items-end space-x-3">
-          <div className="flex-1 relative">
-            <textarea
-              value={message}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
-              disabled={disabled}
-              rows={1}
-              className={`w-full resize-none bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm leading-relaxed max-h-32 overflow-y-auto ${
-                disabled ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              style={{ 
-                minHeight: '24px',
-                height: 'auto'
-              }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = 'auto';
-                target.style.height = Math.min(target.scrollHeight, 128) + 'px';
-              }}
-            />
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <span className={`text-xs ${
-              isOverLimit ? 'text-red-400' : 'text-slate-500'
-            }`}>
-              {charCount}/{MAX_LENGTH}
-            </span>
-            
-            <button
-              onClick={handleSubmit}
-              disabled={disabled || isOverLimit || message.trim().length === 0}
-              className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-                disabled || isOverLimit || message.trim().length === 0
-                  ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 active:scale-95'
-              }`}
-              aria-label="Send message"
-            >
-              <svg 
-                className="w-5 h-5" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" 
-                />
-              </svg>
-            </button>
-          </div>
+    <div className="border-t border-border bg-card/50 backdrop-blur-sm px-4 py-4 sm:px-6">
+      <div className="mx-auto max-w-3xl">
+        <div
+          className={cn(
+            'relative flex items-end gap-3 rounded-xl border bg-background p-2 transition-all duration-200',
+            disabled
+              ? 'border-border bg-muted/30'
+              : 'border-border focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10'
+          )}
+        >
+          <textarea
+            ref={textareaRef}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your message..."
+            disabled={disabled}
+            rows={1}
+            className="flex-1 resize-none bg-transparent px-2 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          />
+
+          <button
+            onClick={handleSend}
+            disabled={!isValid}
+            className={cn(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-all duration-200',
+              isValid
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95'
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
+            )}
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Footer info */}
+        <div className="mt-2 flex items-center justify-between px-1">
+          <span className="text-2xs text-muted-foreground">
+            <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-2xs font-mono">↵</kbd>
+            <span className="ml-1.5">to send</span>
+            <span className="mx-1.5 text-border">•</span>
+            <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-2xs font-mono">⇧ ↵</kbd>
+            <span className="ml-1.5">for new line</span>
+          </span>
+
+          <span
+            className={cn(
+              'text-2xs font-mono transition-colors',
+              isOverLimit ? 'text-destructive' : 'text-muted-foreground'
+            )}
+          >
+            {message.length}/{MAX_LENGTH}
+          </span>
         </div>
       </div>
-      
-      <p className="text-xs text-slate-500 text-center mt-2">
-        Press Enter to send, Shift+Enter for new line
-      </p>
     </div>
   );
 }
