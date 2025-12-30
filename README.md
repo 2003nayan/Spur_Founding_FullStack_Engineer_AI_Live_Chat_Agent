@@ -4,8 +4,8 @@ A full-stack AI-powered customer support chat application built for the Spur Fou
 
 ## 🎯 Live Demo
 
-**Frontend**: [Coming Soon - Vercel]  
-**Backend**: [Coming Soon - Render]
+**Frontend**: https://spur-founding-full-stack-engineer-a.vercel.app/
+**Backend**: https://spur-founding-fullstack-engineer-ai-live.onrender.com
 
 ---
 
@@ -20,15 +20,15 @@ A full-stack AI-powered customer support chat application built for the Spur Fou
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/spur-support-agent.git
-cd spur-support-agent
+git clone https://github.com/2003nayan/Spur_Founding_FullStack_Engineer_AI_Live_Chat_Agent
+cd Spur_Founding_FullStack_Engineer_AI_Live_Chat_Agent
 
 # Install backend dependencies
 cd server
 npm install
 
 # Install frontend dependencies
-cd ../client
+cd client
 npm install
 ```
 
@@ -70,37 +70,37 @@ Navigate to **http://localhost:5173** and start chatting!
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                         Frontend                             │
-│              React + TypeScript + Vite + Tailwind            │
+│                         Frontend                            │
+│              React + TypeScript + Vite + Tailwind           │
 │  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────┐ │
 │  │   App.tsx   │  │ MessageList  │  │     ChatInput       │ │
 │  │  (Layout)   │  │  (Display)   │  │   (User Input)      │ │
 │  └─────────────┘  └──────────────┘  └─────────────────────┘ │
-│                         │                                    │
+│                         │                                   │
 │                  ┌──────┴──────┐                            │
 │                  │  useChat()  │  ← Custom hook             │
 │                  └──────┬──────┘                            │
-│                         │                                    │
+│                         │                                   │
 │                  ┌──────┴──────┐                            │
 │                  │  api/chat   │  ← API client              │
 │                  └──────┬──────┘                            │
 └─────────────────────────┼───────────────────────────────────┘
                           │ HTTP (REST)
 ┌─────────────────────────┼───────────────────────────────────┐
-│                         ▼                                    │
-│                      Backend                                 │
-│           Node.js + Express + TypeScript                     │
+│                         ▼                                   │
+│                      Backend                                │
+│           Node.js + Express + TypeScript                    │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │              routes/chat.ts + Zod Validation          │   │
-│  │  POST /chat/message  │  GET /chat/history/:sessionId  │   │
+│  │              routes/chat.ts + Zod Validation          │  │
+│  │  POST /chat/message  │  GET /chat/history/:sessionId  │  │
 │  └──────────────────────────────────────────────────────┘   │
-│         │                         │                          │
+│         │                         │                         │
 │  ┌──────┴──────┐          ┌──────┴──────┐                   │
 │  │ services/   │          │    db/      │                   │
 │  │   llm.ts    │          │  index.ts   │                   │
 │  │  + p-retry  │          │  (SQLite)   │                   │
 │  └──────┬──────┘          └──────┬──────┘                   │
-│         │                        │                           │
+│         │                        │                          │
 │  ┌──────┴──────┐                 │                          │
 │  │Rate Limiter │                 │                          │
 │  └─────────────┘                 │                          │
